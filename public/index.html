@@ -17,8 +17,19 @@
 </head>
 
 <body>
+
+
     <script src="js/three.js"></script>
     <script>
+        //TEXTURES
+
+        var earthTexture = new THREE.TextureLoader().load("images/earthmap1k.jpg");
+        var earthBump = new THREE.TextureLoader().load("images/earthbump1k.jpg");
+        var earthSpec = new THREE.TextureLoader().load("images/earthspec1k.jpg");
+        var earthCloud = new THREE.TextureLoader().load("images/earthcloudmap.jpg");
+        var stars = new THREE.TextureLoader().load("images/stars.png");
+
+
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -27,21 +38,29 @@
         document.body.appendChild(renderer.domElement);
 
         var geometry = new THREE.SphereGeometry(2, 32, 32);
-        var earthTexture = new THREE.TextureLoader().load("images/earthmap1k.jpg");
-        var earthBump = new THREE.TextureLoader().load("images/earthbump1k.jpg");
-        var earthSpec = new THREE.TextureLoader().load("images/earthspec1k.jpg");
-        var earthCloud = new THREE.TextureLoader().load("images/earthcloudmap.jpg");
+        var geometryCloud = new THREE.SphereGeometry(2.02, 32, 32);
+        var geometrySpace = new THREE.SphereGeometry(90, 32, 32)
+
+        var materialSpace = new THREE.MeshBasicMaterial({
+            map: stars,
+            side: THREE.BackSide
+        });
+
+        var starsMesh = new THREE.Mesh(geometrySpace, materialSpace);
+        scene.add(starsMesh);
+
         var material = new THREE.MeshPhongMaterial({
             map: earthTexture,
             bumpMap: earthBump,
-            bumpScale: 0.2,
+            bumpScale: 0.4,
             specularMap: earthSpec,
 
         });
+
         var materialCloud = new THREE.MeshPhongMaterial({
             map: earthCloud,
             side: THREE.DoubleSide,
-            opacity: 0.4,
+            opacity: 0.6,
             transparent: true,
             depthWrite: false,
         })
@@ -49,15 +68,21 @@
         var earthMesh = new THREE.Mesh(geometry, material);
         scene.add(earthMesh);
 
-        var cloudMesh = new THREE.Mesh(geometry, materialCloud);
-        earthMesh.add(cloudMesh)
+        var cloudMesh = new THREE.Mesh(geometryCloud, materialCloud);
+        scene.add(cloudMesh)
 
         var light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(5, 5, 5);
+        light.position.set(10, 10, 10);
         scene.add(light);
+
+        var earthTiltRadians = 23.4 * (Math.PI / 180);
+        earthMesh.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(-earthTiltRadians));
+        var earthAxis = new THREE.Vector3(Math.sin(earthTiltRadians), Math.cos(earthTiltRadians), 0).normalize();
 
         function render() {
             requestAnimationFrame(render);
+            earthMesh.rotateOnAxis(earthAxis, 0.01);
+            cloudMesh.rotateOnAxis(earthAxis, 0.02);
             renderer.render(scene, camera);
         }
         render();
