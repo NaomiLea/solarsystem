@@ -14,6 +14,7 @@
             height: 100%
         }
     </style>
+
 </head>
 
 <body>
@@ -28,6 +29,9 @@
         var earthSpec = new THREE.TextureLoader().load("images/earthspec1k.jpg");
         var earthCloud = new THREE.TextureLoader().load("images/earthcloudmap.jpg");
         var stars = new THREE.TextureLoader().load("images/stars.png");
+        var sunTexture = new THREE.TextureLoader().load("images/sunmap.jpg");
+        var mercuryTexture = new THREE.TextureLoader().load("images/mercurymap.jpg");
+        var mercuryBump = new THREE.TextureLoader().load("images/mercurybump.jpg");
 
 
         var scene = new THREE.Scene();
@@ -37,43 +41,72 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        var geometry = new THREE.SphereGeometry(2, 32, 32);
-        var geometryCloud = new THREE.SphereGeometry(2.02, 32, 32);
-        var geometrySpace = new THREE.SphereGeometry(90, 32, 32)
+        var geometry = new THREE.SphereGeometry(.5, 32, 32);
+        var geometryCloud = new THREE.SphereGeometry(.56, 32, 32);
+        var geometrySun = new THREE.SphereGeometry(2, 32, 32);
+        var geometrySpace = new THREE.SphereGeometry(90, 32, 32);
+        var geometryMercury = new THREE.SphereGeometry(0.3, 32, 32);
+
+
 
         var materialSpace = new THREE.MeshBasicMaterial({
             map: stars,
             side: THREE.BackSide
         });
 
-        var starsMesh = new THREE.Mesh(geometrySpace, materialSpace);
-        scene.add(starsMesh);
+
+        var materialSun = new THREE.MeshPhongMaterial({
+            map: sunTexture
+        })
 
         var material = new THREE.MeshPhongMaterial({
             map: earthTexture,
             bumpMap: earthBump,
             bumpScale: 0.4,
             specularMap: earthSpec,
+            specular: 0.7
 
         });
 
         var materialCloud = new THREE.MeshPhongMaterial({
             map: earthCloud,
             side: THREE.DoubleSide,
-            opacity: 0.6,
+            opacity: 0.3,
             transparent: true,
             depthWrite: false,
-        })
+        });
+
+        var materialMercury = new THREE.MeshPhongMaterial({
+            map: mercuryTexture,
+            bumpMap: mercuryBump,
+            bumpScale: 0.2
+
+        });
+
+        var mercuryMesh = new THREE.Mesh(geometryMercury, materialMercury);
+        mercuryMesh.position.set(4, 0, -2)
+        scene.add(mercuryMesh);
 
         var earthMesh = new THREE.Mesh(geometry, material);
+        earthMesh.position.set(6, 0, -1);
+
         scene.add(earthMesh);
 
         var cloudMesh = new THREE.Mesh(geometryCloud, materialCloud);
         scene.add(cloudMesh)
 
+        var sunMesh = new THREE.Mesh(geometrySun, materialSun);
+        scene.add(sunMesh);
+
+        var starsMesh = new THREE.Mesh(geometrySpace, materialSpace);
+        scene.add(starsMesh);
+        earthMesh.add(cloudMesh);
+
         var light = new THREE.DirectionalLight(0xffffff);
         light.position.set(10, 10, 10);
         scene.add(light);
+
+
 
         var earthTiltRadians = 23.4 * (Math.PI / 180);
         earthMesh.geometry.applyMatrix(new THREE.Matrix4().makeRotationZ(-earthTiltRadians));
@@ -83,9 +116,17 @@
             requestAnimationFrame(render);
             earthMesh.rotateOnAxis(earthAxis, 0.01);
             cloudMesh.rotateOnAxis(earthAxis, 0.02);
+            sunMesh.rotateOnAxis(earthAxis, 0.005);
+            mercuryMesh.rotateOnAxis(earthAxis, 0.06);
+
+
             renderer.render(scene, camera);
+
         }
         render();
+
+
+
         camera.position.z = 5;
     </script>
 </body>
